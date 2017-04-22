@@ -69,6 +69,7 @@ class ToodledoData(object):
                 'userid': str,
                 'alias': str,
                 'pro': _boolstr,
+                'email': str,
                 'dateformat': int,
                 'timezone': int,
                 'hidemonths': int,
@@ -82,15 +83,17 @@ class ToodledoData(object):
                 'lastedit_goal': str,
                 'lastedit_location': str,
                 'lastedit_task': str,
+                'lastedit_list': str,
+                'lastedit_outline': str,
                 'lastdelete_task': str,
-                'lastedit_notebook': str,
-                'lastdelete_notebook': str,
-                'lastaddedit': str,
-                'lastdelete': str,
-                'lastfolderedit': str,
-                'lastcontextedit': str,
-                'lastgoaledit': str,
-                'lastnotebookedit': str,
+                'lastedit_note': str,
+                'lastdelete_note': str,
+                'lastaddedit': str,  # TODO: required in API v3?
+                'lastdelete': str,  # TODO: required in API v3?
+                'lastfolderedit': str,  # TODO: required in API v3?
+                'lastcontextedit': str,  # TODO: required in API v3?
+                'lastgoaledit': str,  # TODO: required in API v3?
+                'lastnotebookedit': str,  # TODO: required in API v3?
                 },
             'task': {
                 'added': str,
@@ -126,7 +129,7 @@ class ToodledoData(object):
                 'timeron': str,
                 'title': six.u,
                 },
-            'notebook': {
+            'note': {
                 'id': int,
                 'folder': int,
                 'added': str,
