@@ -10,6 +10,7 @@ try:
 except:
     from urllib.error import HTTPError
 
+from poodledo import PoodledoError
 from poodledo.toodledodata import ToodledoData
 from poodledo import auth_server, config
 
@@ -47,26 +48,16 @@ except ImportError:
         exit("poodledo requires either Python 2.6+, or the simplejson module installed.")
 
 ## Expose the ApiClient and error classes for importing
-__all__ = ['ApiClient', 'ToodledoError', 'PoodledoError']
+__all__ = ['ApiClient', 'ToodledoError']
 
 class ToodledoError(Exception):
     ''' Error return from Toodledo API server'''
     def __init__(self, error_msg):
+        super().__init__()
         self.msg = error_msg
 
     def __str__(self):
         return "Toodledo server returned error: %s" % self.msg
-
-class PoodledoError(Exception):
-    '''Error internal to the Poodledo library'''
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __repr__(self):
-        return 'PoodledoError("%s")' % self.msg
-
-    def __str__(self):
-        return self.msg
 
 def returns_list(f):
     '''A decorator that converts the API output to a list of L{ToodledoData} objects'''

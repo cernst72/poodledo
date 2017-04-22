@@ -1,5 +1,6 @@
-from poodledo.apiclient import ApiClient,PoodledoError,ToodledoError
 import poodledo
+from poodledo.apiclient import ApiClient
+from poodledo import PoodledoError
 from os import mkdir
 from os.path import exists, expanduser, join
 from sys import exit
