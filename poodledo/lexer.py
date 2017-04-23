@@ -1,3 +1,14 @@
+# coding=utf-8
+
+"""
+    poodledo.lexer
+    ~~~~~~~~~~~~~~
+
+    Poodledo lexer module.
+
+    :license: BSD-3-Clause, see LICENSE for more details.
+"""
+
 from time import mktime
 import re
 
