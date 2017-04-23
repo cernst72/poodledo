@@ -101,12 +101,12 @@ def handle_http_error(func):
     def wrapper(*args, **kwargs):
         """Handle the HTTPError exceptions raised in f."""
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except HTTPError as error:
             if error.code == 401:  # 401 Unauthorized
                 self = args[0]
                 self.refresh_acess_token()  # try to refresh access token.
-                func(*args, **kwargs)  # one more try. Re-raise if failed.
+                return func(*args, **kwargs)  # try again. Re-raise if failed.
             else:
                 raise
 
