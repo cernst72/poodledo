@@ -5,6 +5,8 @@
     ~~~~~~~~~~~~~~~~~~~~
 
     The authentication code will be send to this local server.
+
+    :license: BSD-3-Clause, see LICENSE for more details.
 """
 
 from http.server import HTTPServer, BaseHTTPRequestHandler

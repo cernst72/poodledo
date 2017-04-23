@@ -5,6 +5,8 @@
     ~~~~~~~~~~~~~~~
 
     Load, store, and reload configuration file.
+
+    :license: BSD-3-Clause, see LICENSE for more details.
 """
 
 import os
