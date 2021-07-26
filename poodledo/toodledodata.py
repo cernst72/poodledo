@@ -1,4 +1,5 @@
 # coding=utf-8
+from dateutil import tz
 
 """
     poodledo.toodledodata
@@ -169,9 +170,9 @@ class ToodledoData(object):
         for key, value in six.iteritems(self.__dict__):
             if value is None or value == 0 or value == "None" or value == "0":
                 continue
-            if key != "id":
+            if key in ["duedate", "duetime", "added", "modified"]:
                 try:
-                    value = datetime.fromtimestamp(int(value))
+                    value = datetime.fromtimestamp(int(value), tz.tzutc())
                 except (TypeError, ValueError):
                     pass
             results.append("%s: %s" % (key, value))
