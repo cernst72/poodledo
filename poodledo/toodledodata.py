@@ -62,7 +62,7 @@ class ToodledoData(object):
         'context': {
             'id': int,
             'name': str,
-            'def': _boolstr,
+            'private': _boolstr,
         },
         'goal': {
             'id': int,
