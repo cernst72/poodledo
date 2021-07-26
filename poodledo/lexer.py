@@ -22,7 +22,7 @@ USAGE = '''Enter a task and associated metadata. Control-C to finish.
 - Parses dates and times, including things like '4:00 PM' and 'next thursday afternoon'.
 - Use [] to make spacing unambiguous.
 
-context:    @<context>     due date:   #<date>
+context:    @<context>     due date:   .<date>
 folder:     *<name>        due time:   =<time>
 goal:       +<goal>        start date: ><date> (&lt;)
 location:   -<location>    start time: ^<time>
@@ -73,7 +73,7 @@ def parse(task_lines):
     # regex-based parser
     filters = [{'name': 'note', 'regex': r'[\b ]\?(.+?)$'},
                {'name': 'context', 'char': '@'},
-               {'name': 'duedate', 'char': '#'},
+               {'name': 'duedate', 'char': r'\.'},
                {'name': 'duetime', 'regex': r'=(\d+(?::\d+)*(?: \w+)*|((?:\w+ )+\w+))'},
                {'name': 'folder', 'char': r'\*'},
                {'name': 'goal', 'char': r'\+'},
