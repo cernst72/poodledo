@@ -37,10 +37,13 @@ def get_cutoff(config):
     return cutoff
 
 
+def get_config():
+    return poodledo.config.get_parser()
+
 def do_login(config=None):
     """Create and initialize (including authentication) an API client."""
     if not config:
-        config = poodledo.config.get_parser()
+        config = get_config()
 
     try:
         app_id = config.get('application', 'id')

@@ -10,7 +10,7 @@
     :license: BSD-3-Clause, see LICENSE for more details.
 """
 
-__all__ = ['apiclient', 'cli', 'lexer', 'toodledodata', 'PoodledoError']
+__all__ = ['apiclient', 'cli', 'config', 'lexer', 'toodledodata', 'PoodledoError']
 
 
 class PoodledoError(Exception):
