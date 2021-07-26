@@ -118,7 +118,7 @@ class ApiClient(object):
     """Toodledo API client."""
     _SERVICE_URL = 'api.toodledo.com/3'
     _TOKEN_XMLFILE = 'token.xml'
-    _SCOPE = 'basic tasks notes'
+    _SCOPE = 'basic tasks notes write'
     _STATESTRLEN = 16
 
     def __init__(self, app_id=None, app_token=None, ssl=False):
