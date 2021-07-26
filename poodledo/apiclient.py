@@ -347,6 +347,8 @@ class ApiClient(object):
         """Refresh access token."""
         res = self._call_post(kind='account', action='token',
                               grant_type='refresh_token',
+                              client_id=self.application_id,
+                              client_secret=self.application_token,
                               refresh_token=self.refresh_token,
                               vers='0.2',  # TODO: code duplication.
                               device=os.uname().sysname,
