@@ -1,0 +1,162 @@
+#!/usr/bin/env python
+
+import logging
+import webbrowser
+from datetime import datetime, timedelta
+from time import mktime, time
+
+import click
+import xml.etree.cElementTree as ET
+import parsedatetime as pdt
+from dateutil import tz
+
+from poodledo.apiclient import PoodledoError
+from poodledo.cli import do_login
+from poodledo.lexer import parse
+
+logger = logging.getLogger(__name__)
+api_client = None
+
+
+@click.group()
+@click.option('-v', '--verbose', 'verbose', default=False, is_flag=True, help='verbose output')
+def cli(verbose):
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+        logger.setLevel(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+        logger.setLevel(level=logging.INFO)
+
+
+@cli.command(help='list relevant tasks')
+@click.option('-c', '--context', 'context')
+@click.option('-a', '--all', 'all', is_flag=True, help='show additional tasks (tommorow + task without due date)')
+def ls(context=None, all=None):
+    tasks = read_tasks(all, context)
+    print_tasks(tasks)
+
+
+@cli.command(help='add new task, Example: \'add task do something .saturday @@context\'')
+@click.argument('task', nargs=-1)
+def add(task):
+    real_task = parse(" ".join(task))
+    if not 'duedate' in real_task:
+        real_task['duedate'] = time()
+    logger.debug("add " + str(real_task))
+    get_client()
+    result = api_client.addTask(**real_task)
+    print(ET.tostring(result))
+
+
+@cli.command(help='show task details')
+@click.argument('task', required=True, type=click.INT)
+def show(task):
+    logger.debug("show " + str(task))
+    get_client()
+    tasks = read_tasks(True, None)
+    print(tasks[task - 1])
+
+
+@cli.command(help='mark task as complete')
+@click.argument('task', required=True, type=click.INT)
+def check(task):
+    logger.debug("check " + task)
+    get_client()
+
+
+@cli.command(help='open toodledo in browser window')
+def open():
+    logger.debug("open")
+    webbrowser.open_new_tab("https://tasks.toodledo.com/main")
+
+
+def context_lookup(id):
+    contextDict = {x['id']: x['name'] for x in api_client.getContexts()}
+    return str(contextDict.get(int(id)))
+
+
+def status_lookup(id):
+    status = ['None', 'NextAction', 'Active', 'Planning', 'Delegated', 'Waiting', 'Hold', 'Postponed', 'Someday',
+              'Canceled', 'Reference']
+    return str(status[id])
+
+
+def priority_lookup(id):
+    return str(['D', 'C', 'B', 'A', 'E'][id])
+
+
+def read_tasks(all_tasks, context=None):
+    get_client()
+    tasks = get_tasks(None, 'today', context)
+    if (all_tasks):
+        tasks += get_tasks('today', 'tomorrow+1', context)
+        tasks += get_tasks(None, None, context, 'next action')
+    return tasks
+
+
+def get_tasks(day_start=None, day_end='today', context=None, status=None):
+    context_id = api_client.translate('context', context) if context else 0
+    status_id = api_client.translate('status', status) if status else 0
+    start = get_max_time(day_start) if day_start else None
+    end = get_max_time(day_end) if day_end else None
+    raw_tasks = [x for x in
+                 api_client.getTasks(cache=True, comp=False)]
+    tasks = [x for x in raw_tasks if is_in(x, start, end, context_id, status_id)]
+    tasks.sort(key=lambda x: (-(x.priority), x.duedate, (x.duetime <= 0), x.duetime, x.status))
+    return tasks
+
+
+def is_in(item, start_date, end_date, context_id, status_id):
+    if ((not item.duedate and not start_date and not end_date) \
+        or (item.duedate and end_date and int(item.duedate) < end_date) \
+        and (not start_date or (item.duedate and int(item.duedate) > start_date))) \
+            and (context_id == 0 or context_id == int(item.context)) \
+            and (status_id == 0 or status_id == int(item.status)):
+        return True
+    else:
+        return False
+
+
+def print_tasks(tasks):
+    if not tasks:
+        print("No tasks found. Go home early!")
+    for item in tasks:
+        output = [f"{str(tasks.index(item) + 1):2}",
+                  "(%s)" % priority_lookup(item.priority),
+                  f"{item.title:50.50}",
+                  f"{format_date(item.duedate) :7}",
+                  f"{format_time(item.duetime) :5}",
+                  f"{status_lookup(item.status):10.10}",
+                  f"{context_lookup(item.context):15.15}"]
+        print((" ".join(output)))
+
+
+def format_date(timestamp):
+    return datetime.fromtimestamp(timestamp, tz.tzutc()).strftime('%a %d.') if timestamp > 0 else ""
+
+
+def format_time(timestamp):
+    return datetime.fromtimestamp(timestamp, tz.tzutc()).strftime('%H:%M') if timestamp > 0 else ""
+
+
+def get_max_time(day='today'):
+    timest = pdt.Calendar().parse(day)[0]
+    now = datetime.fromtimestamp(mktime(timest), tz.tzlocal())
+    daystart = datetime(now.year, now.month, now.day, tzinfo=now.tzinfo)
+    dayend = daystart + timedelta(days=1)
+    utc_dayend = mktime(dayend.timetuple())
+    return utc_dayend
+
+
+def get_client():
+    global api_client
+    try:
+        api_client = do_login()
+    except PoodledoError as e:
+        print(e)
+        exit(1)
+
+
+if __name__ == '__main__':
+    cli()

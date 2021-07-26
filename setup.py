@@ -7,8 +7,9 @@ setup(name='poodledo',
       version=version,
       description='a Python library for working with Toodledo',
       scripts=[
-          'bin/tdcli',
           'bin/cycle',
+          'bin/tdcli',
+          'bin/too',
       ],
       long_description='''poodledo is a Python library for working with the web-based task management software [Toodledo](http://www.toodledo.com).''',
       classifiers=[
