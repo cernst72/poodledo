@@ -38,6 +38,9 @@ from poodledo import PoodledoError
 from poodledo.toodledodata import ToodledoData
 from poodledo import auth_server, config
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Expose the ApiClient and error classes for importing
 __all__ = ['ApiClient', 'ToodledoError']
 
@@ -104,7 +107,9 @@ def handle_http_error(func):
         try:
             return func(*args, **kwargs)
         except HTTPError as error:
-            if error.code == 401:  # 401 Unauthorized
+            root_node = ET.parse(error.fp).getroot()
+            logger.error("HTTP-Error %s, url=%s body=%s" % (error.code, error.url, ET.tostring(root_node)))
+            if error.code == 401:
                 self = args[0]
                 self.refresh_acess_token()  # try to refresh access token.
                 return func(*args, **kwargs)  # try again. Re-raise if failed.
@@ -211,8 +216,10 @@ class ApiClient(object):
         """Perform the actual API call and parses the output."""
         kwargs['f'] = 'xml'
         url = self._create_url(**kwargs)
+        logger.debug("GET %s" % url)
         stream = self._urlopener.open(url)
         root_node = ET.parse(stream).getroot()
+        logger.debug("GET result: %s" % ET.tostring(root_node))
         if root_node.tag == 'error':
             raise ToodledoError(root_node.text)
         return root_node
@@ -225,8 +232,10 @@ class ApiClient(object):
         action = kwargs.pop('action', None)
         data = urlencode(kwargs).encode('utf-8')
         url = self._create_url(kind=kind, action=action)
+        logger.debug("POST %s" % url)
         stream = self._urlopener.open(url, data)
         root_node = ET.parse(stream).getroot()
+        logger.debug("POST result: %s" % ET.tostring(root_node))
         if root_node.tag == 'error':
             raise ToodledoError(root_node.text)
         return root_node
