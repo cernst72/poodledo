@@ -10,6 +10,7 @@
 """
 
 import os
+import platform
 import random
 import string
 import webbrowser
@@ -336,8 +337,8 @@ class ApiClient(object):
                               client_secret=self.application_token,
                               code=code,
                               vers='0.2',  # TODO: code duplication.
-                              device=os.uname().sysname,
-                              os=os.uname().release)
+                              device=platform.uname().release,
+                              os=platform.uname().release)
         self._token['access'] = res.find('access_token').text
         self._scope = res.find('scope').text
         self._token['refresh'] = res.find('refresh_token').text
@@ -351,8 +352,8 @@ class ApiClient(object):
                               client_secret=self.application_token,
                               refresh_token=self.refresh_token,
                               vers='0.2',  # TODO: code duplication.
-                              device=os.uname().sysname,
-                              os=os.uname().release)
+                              device=platform.uname().system,
+                              os=platform.uname().release)
         self._token['access'] = res.find('access_token').text
         self._scope = res.find('scope').text
         self._token['refresh'] = res.find('refresh_token').text
