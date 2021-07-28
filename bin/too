@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from time import mktime, time
 
 import click
-import xml.etree.cElementTree as ET
 import parsedatetime as pdt
 from dateutil import tz
 
@@ -33,9 +32,11 @@ def cli(verbose):
 @click.option('-c', '--context', 'context')
 @click.option('-a', '--all', 'all', is_flag=True, help='show additional tasks (tommorow + task without due date)')
 def ls(context=None, all=None):
+    list_tasks(context, all)
+
+def list_tasks(context=None, all=None):
     tasks = read_tasks(all, context)
     print_tasks(tasks)
-
 
 @cli.command(help='add new task, Example: \'add task do something .saturday @@context\'')
 @click.argument('task', nargs=-1)
@@ -43,10 +44,9 @@ def add(task):
     real_task = parse(" ".join(task))
     if not 'duedate' in real_task:
         real_task['duedate'] = time()
-    logger.debug("add " + str(real_task))
     get_client()
-    result = api_client.addTask(**real_task)
-    print(ET.tostring(result))
+    logger.info("add task: " + str(real_task))
+    api_client.addTask(**real_task)
 
 
 @cli.command(help='show task details')
@@ -61,29 +61,17 @@ def show(task):
 @cli.command(help='mark task as complete')
 @click.argument('task', required=True, type=click.INT)
 def check(task):
-    logger.debug("check " + task)
     get_client()
+    tasks = read_tasks(True, None)
+    logger.info("Marking task '%s' as complete" % tasks[task-1].title)
+    api_client.editTask(tasks[task-1], completed=time())
+    list_tasks()
 
 
 @cli.command(help='open toodledo in browser window')
 def open():
     logger.debug("open")
     webbrowser.open_new_tab("https://tasks.toodledo.com/main")
-
-
-def context_lookup(id):
-    contextDict = {x['id']: x['name'] for x in api_client.getContexts()}
-    return str(contextDict.get(int(id)))
-
-
-def status_lookup(id):
-    status = ['None', 'NextAction', 'Active', 'Planning', 'Delegated', 'Waiting', 'Hold', 'Postponed', 'Someday',
-              'Canceled', 'Reference']
-    return str(status[id])
-
-
-def priority_lookup(id):
-    return str(['D', 'C', 'B', 'A', 'E'][id])
 
 
 def read_tasks(all_tasks, context=None):
@@ -123,12 +111,12 @@ def print_tasks(tasks):
         print("No tasks found. Go home early!")
     for item in tasks:
         output = [f"{str(tasks.index(item) + 1):2}",
-                  "(%s)" % priority_lookup(item.priority),
+                  "(%s)" % format_priority(item.priority),
                   f"{item.title:50.50}",
                   f"{format_date(item.duedate) :7}",
                   f"{format_time(item.duetime) :5}",
-                  f"{status_lookup(item.status):10.10}",
-                  f"{context_lookup(item.context):15.15}"]
+                  f"{format_status(item.status):10.10}",
+                  f"{format_context(item.context):15.15}"]
         print((" ".join(output)))
 
 
@@ -138,6 +126,20 @@ def format_date(timestamp):
 
 def format_time(timestamp):
     return datetime.fromtimestamp(timestamp, tz.tzutc()).strftime('%H:%M') if timestamp > 0 else ""
+
+def format_context(id):
+    contextDict = {x['id']: x['name'] for x in api_client.getContexts()}
+    return str(contextDict.get(int(id)))
+
+
+def format_status(id):
+    status = ['None', 'NextAction', 'Active', 'Planning', 'Delegated', 'Waiting', 'Hold', 'Postponed', 'Someday',
+              'Canceled', 'Reference']
+    return str(status[id])
+
+
+def format_priority(id):
+    return str(['D', 'C', 'B', 'A', 'E'][id])
 
 
 def get_max_time(day='today'):
