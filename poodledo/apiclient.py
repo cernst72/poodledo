@@ -108,7 +108,7 @@ def handle_http_error(func):
             return func(*args, **kwargs)
         except HTTPError as error:
             root_node = ET.parse(error.fp).getroot()
-            logger.error("HTTP-Error %s, url=%s body=%s" % (error.code, error.url, ET.tostring(root_node)))
+            logger.warning("HTTP-Error %s, url=%s body=%s" % (error.code, error.url, ET.tostring(root_node)))
             if error.code == 401 or error.code == 429:
                 self = args[0]
                 self.refresh_acess_token()  # try to refresh access token.
