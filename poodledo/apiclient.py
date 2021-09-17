@@ -107,7 +107,8 @@ def handle_http_error(func):
             if error.code == 401:  # 401 Unauthorized
                 self = args[0]
                 self.refresh_acess_token()  # try to refresh access token.
-                return func(*args, **kwargs)  # try again. Re-raise if failed.
+                kwargs['access_token'] = self._token['access']
+                return func(*args, **kwargs)  # try again with new token. Re-raise if failed.
             else:
                 raise
 
