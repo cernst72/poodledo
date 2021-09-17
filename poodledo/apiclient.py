@@ -112,6 +112,7 @@ def handle_http_error(func):
             if error.code == 401 or error.code == 429:
                 self = args[0]
                 self.refresh_acess_token()  # try to refresh access token.
+                kwargs['access_token'] = self._token['access']
                 return func(*args, **kwargs)  # try again. Re-raise if failed.
             else:
                 raise
