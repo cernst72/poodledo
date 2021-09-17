@@ -30,14 +30,9 @@ def cli(verbose):
 
 @cli.command(help='list relevant tasks')
 @click.option('-c', '--context', 'context')
-@click.option('-a', '--all', 'all', is_flag=True, help='show additional tasks (tomorrow + task without due date)')
-def ls(context=None, all=None):
-    list_tasks(context, all)
-
-
-def list_tasks(context=None, all=None):
-    tasks = read_tasks(all, context)
-    print_tasks(tasks)
+@click.option('-a', '--all', 'list_size', count=True, help='show additional tasks (tomorrow + task without due date)')
+def ls(context=None, list_size=0):
+    list_tasks(context, list_size)
 
 
 @cli.command(help='add new task, Example: \'add task do something .saturday @@context\'')
@@ -56,7 +51,7 @@ def add(task):
 def show(task):
     logger.debug("show " + str(task))
     get_client()
-    tasks = read_tasks(True, None)
+    tasks = read_tasks(None, 2)
     print(tasks[task - 1])
 
 
@@ -64,7 +59,7 @@ def show(task):
 @click.argument('task', required=True, type=click.INT)
 def check(task):
     get_client()
-    tasks = read_tasks(True, None)
+    tasks = read_tasks(None, 2)
     logger.info("Marking task '%s' as complete" % tasks[task - 1].title)
     api_client.editTask(tasks[task - 1], completed=time())
     list_tasks()
@@ -76,12 +71,20 @@ def open_browser():
     webbrowser.open_new_tab("https://tasks.toodledo.com/main")
 
 
-def read_tasks(all_tasks, context=None):
+def list_tasks(context=None, list_size=0):
+    tasks = read_tasks(context, list_size)
+    print_tasks(tasks)
+
+
+def read_tasks(context=None, list_size=0):
     get_client()
     tasks = get_tasks(None, 'today', context)
-    if all_tasks:
+    if list_size == 1:
         tasks += get_tasks('today', 'tomorrow+1', context)
         tasks += get_tasks(None, None, context, 'next action')
+    if list_size > 1:
+        tasks += get_tasks(None, 'tomorrow+364 days', context)
+        tasks += get_tasks(None, None, context)
     return tasks
 
 
@@ -123,7 +126,7 @@ def print_tasks(tasks):
 
 
 def format_date(timestamp):
-    return datetime.fromtimestamp(timestamp, tz.tzutc()).strftime('%a %d.') if timestamp > 0 else ""
+    return datetime.fromtimestamp(timestamp, tz.tzutc()).strftime('%a %d.%m') if timestamp > 0 else ""
 
 
 def format_time(timestamp):
