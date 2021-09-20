@@ -338,7 +338,7 @@ class ApiClient(object):
                               client_secret=self.application_token,
                               code=code,
                               vers='0.2',  # TODO: code duplication.
-                              device=platform.uname().release,
+                              device=platform.uname().systen,
                               os=platform.uname().release)
         self._token['access'] = res.find('access_token').text
         self._scope = res.find('scope').text
