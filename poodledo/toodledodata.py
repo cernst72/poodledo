@@ -158,7 +158,7 @@ class ToodledoData(object):
 
     def __init__(self, node=None):
         typemap = ToodledoData._typemap[node.tag]
-        for elem in node.getchildren():
+        for elem in node:
             self.__dict__[elem.tag] = typemap[elem.tag](elem.text)
         for att in node.attrib:
             self.__dict__[att] = typemap[att](node.attrib[att])
