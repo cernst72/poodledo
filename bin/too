@@ -78,7 +78,7 @@ def check(task):
     logger.info("Marking task %d '%s' as complete" % (task.id, task.title))
     get_client()
     task = api_client.getTask(task.id, cache=False, comp=False)
-    api_client.editTask(task, completed=time())
+    api_client.editTask(task, completed=time(), reschedule=1)
     invalidate_cache()
 
 
