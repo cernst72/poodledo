@@ -42,7 +42,7 @@ def rationalize(task):
     for k in task.keys():
         if isinstance(task[k], str):
             task[k] = task[k].strip()
-        if task[k][0] == '"' and task[k][-1] == '"':
+        if len(task[k]) > 0 and task[k][0] == '"' and task[k][-1] == '"':
             task[k] = task[k][1:-1]
         if k in ['duedate', 'startdate', 'duetime', 'starttime']:
             task[k] = mktime(p.parse(task[k])[0])
