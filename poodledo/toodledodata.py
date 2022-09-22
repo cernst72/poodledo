@@ -156,14 +156,18 @@ class ToodledoData(object):
         },
     }
 
-    def __init__(self, node=None):
-        typemap = ToodledoData._typemap[node.tag]
-        for elem in node:
-            self.__dict__[elem.tag] = typemap[elem.tag](elem.text)
-        for att in node.attrib:
-            self.__dict__[att] = typemap[att](node.attrib[att])
-        if node.text and not node.text.isspace():
-            self.title = node.text
+    def __init__(self, node=None, type=None):
+        if type is None:
+            typemap = ToodledoData._typemap[node.tag]
+            for elem in node:
+                self.__dict__[elem.tag] = typemap[elem.tag](elem.text)
+            for att in node.attrib:
+                self.__dict__[att] = typemap[att](node.attrib[att])
+            if node.text and not node.text.isspace():
+                self.title = node.text
+        else:
+            typemap = ToodledoData._typemap[type]
+            self.__dict__ = node
 
     def __str__(self):
         results = []
