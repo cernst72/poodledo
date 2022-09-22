@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import ast
 import logging
+import os
 import webbrowser
 from datetime import datetime, timedelta
 from time import mktime, time
@@ -8,10 +10,12 @@ from time import mktime, time
 import click
 import parsedatetime as pdt
 from dateutil import tz
-
+from poodledo import config
+from poodledo import apiclient
 from poodledo.apiclient import PoodledoError
 from poodledo.cli import do_login
 from poodledo.lexer import parse
+from poodledo.toodledodata import ToodledoData
 
 logger = logging.getLogger(__name__)
 api_client = None
@@ -37,12 +41,24 @@ def ls(context=None, list_size=0):
 
 @cli.command(help='list new tasks')
 def inbox(context=None, list_size=0):
-    get_client()
-    raw_tasks = [x for x in
-                 api_client.getTasks(cache=True, comp=False)]
-    tasks = [x for x in raw_tasks if x.context == '0' or x.status == 0]
+    list_tasks_inbox()
 
-    print_tasks(tasks)
+
+@cli.command(help='show task details')
+@click.argument('task', required=True, type=click.INT)
+def show(task):
+    logger.debug("show " + str(task))
+    tasks = read_cache()
+    print(tasks[task - 1])
+
+@cli.command(name='open', help='open task in browser')
+@click.argument('task', required=True, type=click.INT)
+def open_task(task):
+    logger.debug("open " + str(task))
+    task = read_cache()[task - 1]
+    logger.info("Open task '%s'" % task.title)
+    webbrowser.open_new_tab("https://tasks.toodledo.com/main/-10/" + str(task.id))
+
 
 @cli.command(help='add new task, Example: \'add task do something .saturday @@context\'')
 @click.argument('task', nargs=-1)
@@ -50,51 +66,30 @@ def add(task):
     real_task = parse(" ".join(task))
     if 'duedate' not in real_task:
         real_task['duedate'] = time()
-    get_client()
     logger.info("add task: " + str(real_task))
-    api_client.addTask(**real_task)
-
-
-@cli.command(help='show task details')
-@click.argument('task', required=True, type=click.INT)
-def show(task):
-    logger.debug("show " + str(task))
     get_client()
-    tasks = read_tasks(None, 2)
-    print(tasks[task - 1])
-
-@cli.command(help='open task in browser')
-@click.argument('task', required=True, type=click.INT)
-def open(task):
-    logger.debug("open " + str(task))
-    task = read_tasks(None, 2)[task - 1]
-    logger.info("Open task '%s'" % task.title)
-    webbrowser.open_new_tab("https://tasks.toodledo.com/main/-10/" + str(task.id))
-    print()
-
+    api_client.addTask(**real_task)
+    invalidate_cache()
 
 @cli.command(help='mark task as complete')
 @click.argument('task', required=True, type=click.INT)
 def check(task):
-    # get_client()
-    task = read_tasks(None, 2)[task - 1]
-    logger.info("Marking task '%s' as complete" % task.title)
+    task = read_cache()[task - 1]
+    logger.info("Marking task %d '%s' as complete" % (task.id, task.title))
+    get_client()
+    task = api_client.getTask(task.id, cache=False, comp=False)
     api_client.editTask(task, completed=time())
-    list_tasks()
+    invalidate_cache()
 
 
-@cli.command(help='open toodledo in browser window')
+@cli.command(name = "browser", help='open toodledo in browser window')
 def open_browser():
     logger.debug("open browser")
     webbrowser.open_new_tab("https://tasks.toodledo.com/main")
 
 
+
 def list_tasks(context=None, list_size=0):
-    tasks = read_tasks(context, list_size)
-    print_tasks(tasks)
-
-
-def read_tasks(context=None, list_size=0):
     get_client()
     tasks = get_tasks(None, 'today', context)
     if list_size == 1:
@@ -103,7 +98,17 @@ def read_tasks(context=None, list_size=0):
     if list_size > 1:
         tasks += get_tasks(None, 'tomorrow+364 days', context)
         tasks += get_tasks(None, None, context)
-    return tasks
+    write_cache(tasks)
+    print_tasks(tasks)
+
+def list_tasks_inbox():
+    get_client()
+    raw_tasks = api_client.getTasks(cache=True, comp=False)
+    tasks = [x for x in raw_tasks if x.context == '0' or x.status == 0]
+    write_cache(tasks)
+    print_tasks(tasks)
+
+
 
 
 def get_tasks(day_start=None, day_end='today', context=None, status=None):
@@ -129,6 +134,28 @@ def is_in(item, start_date, end_date, context_id, status_id):
     else:
         return False
 
+def toToodleTask(elem):
+    return ToodledoData(elem, "task")
+
+def write_cache(tasks):
+    cache_file = os.path.join(config.CONFIGDIR, "tasks.json")
+    with open(cache_file, "w") as f:
+        f.write(repr(tasks))
+
+def read_cache():
+    cache_file = os.path.join(config.CONFIGDIR, "tasks.json")
+    try:
+        with open(cache_file, 'r') as f:
+            tasks = ast.literal_eval(f.read())
+        return [toToodleTask(elem) for elem in tasks]
+    except IOError as error: 
+        print("No cache. First you must read via commands 'ls' or 'inbox'.")
+        exit(-1)
+
+
+def invalidate_cache():
+    cache_file = os.path.join(config.CONFIGDIR, "tasks.json")
+    os.remove(cache_file)
 
 def print_tasks(tasks):
     if not tasks:
