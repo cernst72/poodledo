@@ -1009,14 +1009,14 @@ class ApiClient(object):
                           kind='tasks', action='get',
                           **kwargs)
 
-    def getTask(self, label, cache=False):
+    def getTask(self, label, cache=False, comp=None):
         """Return a C{ToodledoData} object representing a task.
         @param label: The task's name, id, or a C{ToodledoData} object
                       representing the task.
         @type label: C{str}/C{int}/C{ToodledoData}
         @raise PoodledoError: Throws an error if the task does not exist
         """
-        for task in self.getTasks(cache=cache):
+        for task in self.getTasks(cache=cache, comp=comp):
             try:
                 if int(label) == task.id:
                     return task
