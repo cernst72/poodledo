@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import ast
+from importlib.metadata import requires
 import logging
 import os
 import webbrowser
@@ -52,12 +53,18 @@ def show(task):
     print(tasks[task - 1])
 
 @cli.command(name='open', help='open task in browser')
-@click.argument('task', required=True, type=click.INT)
+@click.argument('task', required=False, type=click.INT)
 def open_task(task):
-    logger.debug("open " + str(task))
-    task = read_cache()[task - 1]
-    logger.info("Open task '%s'" % task.title)
-    webbrowser.open_new_tab("https://tasks.toodledo.com/main/-10/" + str(task.id))
+    url = "https://tasks.toodledo.com/main"
+    if (task and task > 0):
+        print("task" + str(task))
+        logger.debug("open " + str(task))
+        task = read_cache()[task - 1]
+        logger.info("Open task '%s'" % task.title)
+        url += "/-10/" + str(task.id)
+    else:
+        url += "/-9/"
+    webbrowser.open_new_tab(url)
 
 
 @cli.command(help='add new task, Example: \'add task do something .saturday @@context\'')
@@ -101,13 +108,6 @@ def check(task):
     task = api_client.getTask(task.id, cache=False, comp=False)
     api_client.editTask(task, completed=time(), reschedule=1)
     invalidate_cache()
-
-
-@cli.command(name = "browser", help='open toodledo in browser window')
-def open_browser():
-    logger.debug("open browser")
-    webbrowser.open_new_tab("https://tasks.toodledo.com/main")
-
 
 
 def list_tasks(context=None, list_size=0):
@@ -185,7 +185,7 @@ def print_tasks(tasks):
         output = [f"{str(tasks.index(item) + 1):2}",
                   "(%s)" % format_priority(item.priority),
                   f"{item.title:50.50}",
-                  f"{format_date(item.duedate):7.7}",
+                  f"{format_date(item.duedate):9.9}",
                   f"{format_time(item.duetime):5.5}",
                   f"{format_context(item.context):15.15}",
                   f"{format_status(item.status):11.11}"]
