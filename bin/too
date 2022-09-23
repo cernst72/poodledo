@@ -2,6 +2,7 @@
 
 import ast
 from importlib.metadata import requires
+from linecache import cache
 import logging
 import os
 import webbrowser
@@ -170,13 +171,14 @@ def read_cache():
             tasks = ast.literal_eval(f.read())
         return [toToodleTask(elem) for elem in tasks]
     except IOError as error: 
-        print("No cache. First you must read via commands 'ls' or 'inbox'.")
+        print("No valid cache. First you must read via commands 'ls' or 'inbox'.")
         exit(-1)
 
 
 def invalidate_cache():
     cache_file = os.path.join(config.CONFIGDIR, "tasks.json")
-    os.remove(cache_file)
+    if (os.path.exists(cache_file)):
+        os.remove(cache_file)
 
 def print_tasks(tasks):
     if not tasks:
