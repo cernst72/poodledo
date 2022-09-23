@@ -115,7 +115,7 @@ def list_tasks(context=None, list_size=0):
     get_client()
     tasks = get_tasks(None, 'today', context)
     if list_size == 0:
-        tasks += get_tasks('today', 'tomorrow+1', context)
+        tasks += get_tasks('today', 'in 3 days', context)
         tasks += get_tasks(None, None, context, 'next action')
     if list_size > 0:
         tasks += get_tasks(None, 'tomorrow+364 days', context)
@@ -131,8 +131,6 @@ def list_tasks_inbox():
     print_tasks(tasks)
 
 
-
-
 def get_tasks(day_start=None, day_end='today', context=None, status=None):
     context_id = api_client.translate('context', context) if context else 0
     status_id = api_client.translate('status', status) if status else 0
@@ -141,8 +139,12 @@ def get_tasks(day_start=None, day_end='today', context=None, status=None):
     raw_tasks = [x for x in
                  api_client.getTasks(cache=True, comp=False)]
     tasks = [x for x in raw_tasks if is_in(x, start, end, context_id, status_id)]
-    tasks.sort(key=lambda x: (-(x.priority), x.duedate,
-               (x.duetime <= 0), x.duetime, x.status, x.context))
+    tasks.sort(key=lambda x: (x.duedate,
+               (x.duetime <= 0),
+               x.duetime,
+               -(x.priority),
+               x.status,
+               x.context))
     return tasks
 
 
