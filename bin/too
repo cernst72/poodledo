@@ -72,8 +72,6 @@ def open_task(task):
 @click.argument('line', nargs=-1)
 def add(line):
     task = parse(" ".join(line))
-    if 'duedate' not in task:
-        task['duedate'] = time()
     logger.info("add task: " + str(task))
     get_client()
     api_client.addTask(**task)
