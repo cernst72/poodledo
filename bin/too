@@ -187,8 +187,8 @@ def print_tasks(tasks):
                   f"{item.title:50.50}",
                   f"{format_date(item.duedate):7.7}",
                   f"{format_time(item.duetime):5.5}",
-                  f"{format_status(item.status):11.11}",
-                  f"{format_context(item.context):15.15}"]
+                  f"{format_context(item.context):15.15}",
+                  f"{format_status(item.status):11.11}"]
         print((" ".join(output)))
 
 
