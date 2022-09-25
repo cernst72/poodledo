@@ -95,7 +95,6 @@ def edit(task, line):
         new_task["title"] = task.title
     logger.info("Edit %d, '%s' to %s" % (task.id, task.title, new_task))
     get_client()
-    api_client.editTask(task, **new_task)
 
 
 @cli.command(help='mark task as complete')
@@ -106,7 +105,6 @@ def check(task):
     get_client()
     task = api_client.getTask(task.id, cache=False, comp=False)
     api_client.editTask(task, completed=time(), reschedule=1)
-    invalidate_cache()
 
 
 def list_tasks(context=None, list_size=0):
