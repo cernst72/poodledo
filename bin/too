@@ -49,9 +49,9 @@ def inbox(context=None, list_size=0):
 @cli.command(help='show task details')
 @click.argument('task', required=True, type=click.INT)
 def show(task):
-    logger.debug("show " + str(task))
-    tasks = read_cache()
-    print(tasks[task - 1])
+    task = read_cache()[task - 1]
+    logger.debug("task: %s" % task.dict())
+    print(task)
 
 @cli.command(name='open', help='open task in browser')
 @click.argument('task', required=False, type=click.INT)
