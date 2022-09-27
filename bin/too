@@ -76,11 +76,16 @@ def add(line):
     get_client().addTask(**task)
     invalidate_cache()
 
-@cli.command(help='edit task')
+@cli.command()
 @click.argument('task', required=True, type=click.INT)
 @click.argument('line', nargs=-1)
 # @click.argument('modification', required=True, type=click.STRING)
 def edit(task, line):
+    """
+    edit task
+    
+    edit 1 \'?some note .monday =14:00 :1 $next action @@work !!!\'
+    """
     # edit 2 '?some note'
     # edit 2 '.next monday'
     # edit 2 '=14:00'
@@ -186,6 +191,7 @@ def print_tasks(tasks):
                   f"{item.title:50.50}",
                   f"{format_date(item.duedate):9.9}",
                   f"{format_time(item.duetime):5.5}",
+                  f"{(item.remind if int(item.remind) > 0 else ''):2.2}",
                   f"{format_context(item.context):15.15}",
                   f"{format_status(item.status):11.11}"]
         print((" ".join(output)))
