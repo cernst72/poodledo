@@ -29,7 +29,7 @@ location:   -<location>    start time: ^<time>
 repeat:     &<schedule>    length:     ~<time>
 
 priority:   default is zero; single ! = 1, !! = 2, !!! = 3 (top)
-reminder:   :<lead time>; ":5 hours"
+remind:     :<lead time>; ":1"
 star:       * alone makes the task starred
 status:     $<status>
 tag:        %<tag>; can select multiple with "%tag1, tag2"
@@ -84,7 +84,7 @@ def parse(task_lines):
                {'name': 'goal', 'char': r'\+'},
                {'name': 'length', 'char': '~'},
                {'name': 'location', 'char': r'\-'},
-               {'name': 'reminder', 'char': r'\:'},
+               {'name': 'remind', 'char': r'\:'},
                {'name': 'repeat', 'char': r'\&'},
                {'name': 'star', 'regex': r'[\b ](\*)[\b ]??'},
                {'name': 'startdate', 'char': '>'},

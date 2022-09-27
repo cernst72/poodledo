@@ -218,7 +218,7 @@ I made some significant improvements to the `tdcli` tool:
         location: -<location>
         note: ?<note data>
         priority: default is zero; single ! = 1, !! = 2, !!! = 3 (top)
-        reminder: :<lead time>; ":5 hours"
+        remind: :<lead time>; ":1"
         repeat: &<schedule>
         star: * alone makes the task starred
         start date: ><date> (&lt;)

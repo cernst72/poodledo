@@ -130,7 +130,6 @@ class ToodledoData(object):
             'parent': int,
             'priority': int,
             'remind': str,
-            'reminder': int,
             'rep_advanced': str,
             'repeat': str,
             'repeatfrom': int,
@@ -191,6 +190,9 @@ class ToodledoData(object):
 
     def values(self):
         return self.__dict__.values()
+
+    def dict(self):
+        return self.__dict__
 
     def __getitem__(self, key):
         return self.__dict__[key]
