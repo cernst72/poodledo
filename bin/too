@@ -118,7 +118,7 @@ def list_tasks(context=None, list_size=0):
         tasks += get_tasks('today', 'in 3 days', context)
         tasks += get_tasks(None, None, context, 'next action')
     if list_size > 0:
-        tasks += get_tasks(None, 'tomorrow+364 days', context)
+        tasks += get_tasks('today', 'tomorrow+364 days', context)
         tasks += get_tasks(None, None, context)
     write_cache(tasks)
     print_tasks(tasks)
