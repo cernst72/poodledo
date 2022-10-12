@@ -28,7 +28,7 @@ goal:       +<goal>        start date: ><date> (&lt;)
 location:   -<location>    start time: ^<time>
 repeat:     &<schedule>    length:     ~<time>
 
-priority:   default is zero; single ! = 1, !! = 2, !!! = 3 (top)
+priority:   default is zero; single !0, !1, ..., !3 = top
 remind:     :<lead time>; ":1"
 star:       * alone makes the task starred
 status:     $<status>
@@ -51,7 +51,6 @@ def rationalize(task):
                 task[k] = ''
             else:
                 task[k] = mktime(p.parse(task[k])[0])
-        if k == 'priority': task[k] = len(task[k])
         if k == 'star': task[k] = True
     return task
 
@@ -90,7 +89,7 @@ def parse(task_lines):
                {'name': 'startdate', 'char': '>'},
                {'name': 'starttime', 'regex': r'\^(\d+(?::\d+)*(?: \w+)*|((?:\w+ )+\w+))'},
                {'name': 'status', 'char': r'\$'},
-               {'name': 'priority', 'regex': r'(?:[\b ](!{1,3})[\b ]?|\b([0-3])[\b ]?|[\b ](-1)[\b ]?)'},
+               {'name': 'priority', 'char': r'\!'},
                {'name': 'tag', 'regex': r'%(?:((?:\w+, )*\w+)+|\[(.+?)\])'}]
 
     parsedtask = {}
