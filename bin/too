@@ -87,7 +87,8 @@ def edit(task, line):
     
     edit 1 \'?some note .monday =14:00 :1 $next action @@work !2\'
     """
-    # edit 2 '?some note'
+    # edit 2 ' ?some note' # append to note
+    # edit 2 ' ? ' # deletes note
     # edit 2 '.next monday'
     # edit 2 '=14:00'
     # edit 2 '$next action'
@@ -100,6 +101,8 @@ def edit(task, line):
         new_task["title"] = old_task.title
     if "star" in new_task and new_task["star"]:
         new_task["star"] = not old_task.star
+    if "note" in new_task and new_task["note"] and old_task.note:
+        new_task["note"] = old_task.note + "\n" + new_task["note"]
     logger.info("Edit %d, '%s' to %s" % (old_task.id, old_task.title, new_task))
     get_client().editTask(old_task, **new_task)
 
