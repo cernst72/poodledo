@@ -37,8 +37,9 @@ def cli(verbose):
 @cli.command(help='list relevant tasks (optionaly with -a)')
 @click.option('-c', '--context', 'context')
 @click.option('-a', '--all', 'list_size', count=True, help='show additional tasks (tomorrow + task without due date)')
-def ls(context=None, list_size=0):
-    list_tasks(context, list_size)
+@click.option('-i', '--priority-level', 'priority_level_sort', is_flag=True, help='sort by priority level')
+def ls(context=None, list_size=0, priority_level_sort=False):
+    list_tasks(context, list_size, priority_level_sort)
 
 
 @cli.command(help='list new tasks')
@@ -84,21 +85,23 @@ def edit(task, line):
     """
     edit task
     
-    edit 1 \'?some note .monday =14:00 :1 $next action @@work !!!\'
+    edit 1 \'?some note .monday =14:00 :1 $next action @@work !2\'
     """
     # edit 2 '?some note'
     # edit 2 '.next monday'
     # edit 2 '=14:00'
     # edit 2 '$next action'
     # edit 2 '@@work'
-    # edit 2 '!!!'
+    # edit 2 '!2'
     # edit 2 ':1'
-    task = read_cache()[task - 1]
+    old_task = read_cache()[task - 1]
     new_task = parse(" ".join(line))
     if not "title" in new_task or new_task["title"] == '':
-        new_task["title"] = task.title
-    logger.info("Edit %d, '%s' to %s" % (task.id, task.title, new_task))
-    get_client().editTask(task, **new_task)
+        new_task["title"] = old_task.title
+    if "star" in new_task and new_task["star"]:
+        new_task["star"] = not old_task.star
+    logger.info("Edit %d, '%s' to %s" % (old_task.id, old_task.title, new_task))
+    get_client().editTask(old_task, **new_task)
 
 
 @cli.command(help='mark task as complete')
@@ -111,7 +114,7 @@ def check(task):
     api_client.editTask(task, completed=time(), reschedule=1)
 
 
-def list_tasks(context=None, list_size=0):
+def list_tasks(context, list_size, priority_level_sort):
     get_client()
     tasks = get_tasks(None, 'today', context)
     if list_size == 0:
@@ -120,6 +123,8 @@ def list_tasks(context=None, list_size=0):
     if list_size > 0:
         tasks += get_tasks('today', 'tomorrow+364 days', context)
         tasks += get_tasks(None, None, context)
+    if (priority_level_sort):
+        tasks.sort(key=lambda x: priority_level(x), reverse=True)
     write_cache(tasks)
     print_tasks(tasks)
 
@@ -144,7 +149,8 @@ def get_tasks(day_start=None, day_end='today', context=None, status=None):
                x.duetime,
                -(x.priority),
                x.status,
-               x.context))
+               x.context,
+               x.title.upper()))
     return tasks
 
 
@@ -188,12 +194,14 @@ def print_tasks(tasks):
     for item in tasks:
         output = [f"{str(tasks.index(item) + 1):2}",
                   "(%s)" % format_priority(item.priority),
+                  "%s" % "*" if item.star else " ",
                   f"{item.title:50.50}",
                   f"{format_date(item.duedate):9.9}",
                   f"{format_time(item.duetime):5.5}",
                   f"{(item.remind if int(item.remind) > 0 else ''):2.2}",
                   f"{format_context(item.context):15.15}",
-                  f"{format_status(item.status):11.11}"]
+                  f"{format_status(item.status):11.11}",
+                  f"{priority_level(item):3}"]
         print((" ".join(output)))
 
 
@@ -239,6 +247,26 @@ def get_max_time(day='today'):
     utc_dayend = mktime(dayend.timetuple())
     return utc_dayend
 
+def priority_level(item):
+    today = datetime.today()
+    if (item.duedate > 0):
+        duedate = datetime.fromtimestamp(int(item.duedate))
+        datediff = (duedate - today).days
+        if (datediff < 0):
+            datepoints = 6
+        elif (datediff == 0):
+            datepoints = 5
+        elif (datediff == 1):
+            datepoints = 3
+        elif (datediff > 1 and datediff <= 7):
+            datepoints = 2
+        elif (datediff > 7 and datediff <= 14):
+            datepoints = 1
+        else:
+            datepoints = 0
+    else:
+        datepoints = 0
+    return 2 + int(item.priority) + (1 if item.star else 0) + datepoints
 
 def get_client():
     global api_client
