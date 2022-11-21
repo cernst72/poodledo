@@ -86,7 +86,7 @@ def edit(task, line):
     """
     edit task
 
-    edit 1 \'?some note .monday =14:00 :1 $next action @@work !2\'
+    edit 1 \' ?some note .monday =14:00 :1 $next action @@work !2 *\'
     """
     # edit 2 ' ?some note' # append to note
     # edit 2 ' ? ' # deletes note
