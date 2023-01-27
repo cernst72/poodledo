@@ -94,8 +94,8 @@ def edit(task, line):
     # edit 2 '=14:00'
     # edit 2 '$next action'
     # edit 2 '@@work'
-    # edit 2 '!2'
-    # edit 2 ':1'
+    # edit 2 '!2' modify priority
+    # edit 2 ':1' modify reminder
     old_task = read_cache()[task - 1]
     new_task = parse(" ".join(line))
     if not "title" in new_task or new_task["title"] == '':
@@ -274,16 +274,28 @@ def priority_level(item):
         elif (datediff == 0):
             datepoints = 5
         elif (datediff == 1):
+            datepoints = 4
+        elif (datediff > 1 and datediff <= 2):
             datepoints = 3
-        elif (datediff > 1 and datediff <= 7):
-            datepoints = 2
-        elif (datediff > 7 and datediff <= 14):
+        elif (datediff > 2 and datediff <= 5):
+            datepoints = 3
+        elif (datediff > 5 and datediff <= 10):
             datepoints = 1
+        elif (datediff > 10):
+            datepoints = -1
         else:
             datepoints = 0
     else:
         datepoints = 0
-    return 2 + int(item.priority) + (1 if item.star else 0) + datepoints + (-1 if item.status != 1 else 0)
+
+    if item.status == 1:
+        statuspoints = 0
+    elif item.status == 0:
+        statuspoints = 5
+    else:
+        statuspoints = -1
+
+    return 2 + statuspoints + datepoints + int(item.priority) + (1 if item.star else 0)
 
 def get_client() -> ApiClient:
     global api_client
