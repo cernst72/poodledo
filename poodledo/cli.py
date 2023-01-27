@@ -41,7 +41,7 @@ def get_config():
     return poodledo.config.get_parser()
 
 
-def do_login(config=None):
+def do_login(config=None) -> ApiClient:
     """Create and initialize (including authentication) an API client."""
     if not config:
         config = get_config()
